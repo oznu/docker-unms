@@ -1,0 +1,19 @@
+#!/usr/bin/with-contenv sh
+
+[ -e /config/unms ] || mkdir /config/unms
+[ -e /app/data ] && rm -rf /app/data
+
+ln -s /config/unms /app/data
+
+mkdir /app/data/supportinfo \
+  /app/data/cert \
+  /app/data/images \
+  /app/data/firmwares \
+  /app/data/logs \
+  /app/data/config-backups \
+  /app/data/unms-backups \
+  /app/data/import \
+  /app/data/update
+
+chown -R abc:abc /config/unms
+chmod -R u+rwX,g-rwx,o-rwx /config/unms

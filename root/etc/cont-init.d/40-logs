@@ -1,0 +1,4 @@
+#!/usr/bin/with-contenv sh
+
+mkdir -p /config/logs
+chown nobody:nobody /config/logs
