@@ -1,3 +1,5 @@
+[![Docker Build Status](https://img.shields.io/docker/build/oznu/unms.svg)](https://hub.docker.com/r/oznu/unms/) [![Docker Automated build](https://img.shields.io/docker/automated/oznu/unms.svg)](https://hub.docker.com/r/oznu/unms/)
+
 # Docker UNMS
 
 This is a all-in-one Alpine Linux based Docker image for running the [Ubiquiti Network Management System](https://unms.com/). This image contains all the components required to run [UNMS](https://unms.com/) in a single container and uses the [s6-overlay](https://github.com/just-containers/s6-overlay) for process management.
