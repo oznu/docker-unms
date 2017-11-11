@@ -28,6 +28,14 @@ ENV PGDATA=/config/postgres \
   POSTGRES_DB=unms \
   HOME=/var/lib/rabbitmq \
   PROD=true \
+  HTTP_PORT=8081 \
+  HTTPS_PORT=8444 \
+  PUBLIC_HTTPS_PORT=443 \
+  PUBLIC_WS_PORT=443 \
   BEHIND_REVERSE_PROXY=false
+
+EXPOSE 8081 8444
+
+VOLUME ["/config"]
 
 COPY root /
