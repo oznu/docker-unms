@@ -2,7 +2,7 @@
 
 This is a all-in-one Alpine Linux based Docker image for running the [Ubiquiti Network Management System](https://unms.com/). This image contains all the components required to run [UNMS](https://unms.com/) in a single container and uses the [s6-overlay](https://github.com/just-containers/s6-overlay) for process management.
 
-This image will run on most platforms that support Docker including [Docker for Mac](https://www.docker.com/docker-mac) and [Docker for Windows](https://www.docker.com/docker-windows).
+This image will run on most platforms that support Docker including [Docker for Mac](https://www.docker.com/docker-mac), [Docker for Windows](https://www.docker.com/docker-windows), Synology DSM and Raspberry Pi boards.
 
 ## Usage
 
@@ -13,7 +13,15 @@ docker run \
   -e PUID=<UID> -e PGID=<GID> \
   -e TZ=<timezone> \
   -v </path/to/config>:/config \
-  oznu/unms
+  oznu/unms:latest
+```
+
+## Raspberry Pi / ARMv6
+
+This image will also allow you to run [UNMS](https://unms.com/) on a Raspberry Pi or other Docker-enabled ARMv6/7/8 devices by using the `armhf` tag.
+
+```
+docker run -d --name unms -p 8081:8081 -p 8444:8444 -v </path/to/config>:/config oznu/unms:armhf
 ```
 
 ## Parameters
