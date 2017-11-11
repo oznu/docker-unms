@@ -1,21 +1,20 @@
 # Multi-stage build - See https://docs.docker.com/engine/userguide/eng-image/multistage-build
 FROM ubnt/unms as unms
 
-FROM oznu/s6-node:latest
+FROM oznu/s6-node:8.9.0
 
 # Copy UNMS app from offical image since the source code is not published at this time
 COPY --from=unms /home/app/unms /app
 
-RUN apk add --no-cache python make gcc g++ openssl postgresql redis \
-  && apk add vips-dev fftw-dev rabbitmq-server \
-    --no-cache --repository https://dl-cdn.alpinelinux.org/alpine/edge/testing/
+RUN sed -i 's/edge\/community/edge\/testing/g' /etc/apk/repositories \
+  && apk add --no-cache python make gcc g++ openssl postgresql redis bash \
+  vips-dev fftw-dev rabbitmq-server
 
 WORKDIR /app
 
 # Re-install node modules
 RUN rm -rf /app/node_modules \
-  && yarn install --ignore-engines \
-  && mkdir /app/cert
+  && yarn install --ignore-engines
 
 # Prepare for rabbitmq-server
 RUN deluser rabbitmq \
@@ -27,6 +26,8 @@ RUN deluser rabbitmq \
 
 ENV PGDATA=/config/postgres \
   POSTGRES_DB=unms \
-  HOME=/var/lib/rabbitmq
+  HOME=/var/lib/rabbitmq \
+  PROD=true \
+  BEHIND_REVERSE_PROXY=false
 
 COPY root /

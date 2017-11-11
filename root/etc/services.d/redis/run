@@ -1,4 +1,4 @@
 #!/usr/bin/with-contenv sh
 
 echo "Starting redis..."
-exec redis-server
+s6-setuidgid abc redis-server --appendonly yes --dir /config/redis/

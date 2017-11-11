@@ -1,0 +1,15 @@
+#!/usr/bin/with-contenv sh
+
+# Logs
+[ -e /config/logs ] || mkdir -p /config/logs
+chown -R nobody:nobody /config/logs
+
+# Redis
+[ -e /config/redis ] || mkdir -p /config/redis
+chown -R abc:abc /config/redis
+
+# UNMS
+[ -e /config/unms ] || mkdir /config/unms
+[ -e /app/data ] && rm -rf /app/data
+ln -s /config/unms /app/data
+chown -R abc:abc /config/unms
