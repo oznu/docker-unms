@@ -1,0 +1,4 @@
+#!/usr/bin/with-contenv sh
+
+echo "Starting nginx..."
+s6-setuidgid root nginx -g 'daemon off;'

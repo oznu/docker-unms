@@ -1,7 +1,7 @@
 # Multi-stage build - See https://docs.docker.com/engine/userguide/eng-image/multistage-build
-FROM ubnt/unms:0.10.4 as unms
+FROM ubnt/unms:0.11.0-rc1 as unms
 
-FROM oznu/s6-node:8.9.0-armhf
+FROM oznu/s6-node:8.9.1-armhf
 
 # Copy UNMS app from offical image since the source code is not published at this time
 COPY --from=unms /home/app/unms /app
@@ -21,17 +21,22 @@ RUN devDeps="vips-dev fftw-dev make python g++" \
   && chmod -R 777 /var/lib/rabbitmq /etc/rabbitmq \
   && ln -sf /var/lib/rabbitmq/.erlang.cookie /root/
 
+RUN devDeps="musl-dev gcc python python-dev py-pip libffi-dev openssl-dev" \
+  && apk add --no-cache sudo dumb-init certbot openssl nginx nginx-mod-http-lua ${devDeps} \
+  && pip install -U certbot-nginx \
+  && apk del ${devDeps} \
+  && echo "abc ALL=(ALL) NOPASSWD: /usr/sbin/nginx -s *" >> /etc/sudoers
+
 ENV PGDATA=/config/postgres \
   POSTGRES_DB=unms \
   HOME=/var/lib/rabbitmq \
   PROD=true \
-  HTTP_PORT=8080 \
-  HTTPS_PORT=8443 \
+  HTTPS_PORT=443 \
   PUBLIC_HTTPS_PORT=443 \
   PUBLIC_WS_PORT=443 \
-  BEHIND_REVERSE_PROXY=false
+  UNMS_FLUENTD_PORT=80
 
-EXPOSE 8080 8443
+EXPOSE 80 443
 
 VOLUME ["/config"]
 
