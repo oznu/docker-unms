@@ -1,4 +1,4 @@
-[![Docker Build Status](https://img.shields.io/docker/build/oznu/unms.svg)](https://hub.docker.com/r/oznu/unms/) [![Docker Automated build](https://img.shields.io/docker/automated/oznu/unms.svg)](https://hub.docker.com/r/oznu/unms/) [![GitHub release](https://img.shields.io/github/release/oznu/unms.svg)](https://github.com/oznu/docker-unms/releases)
+[![Docker Build Status](https://img.shields.io/docker/build/oznu/unms.svg?label=x64%20build&style=for-the-badge)](https://hub.docker.com/r/oznu/unms/) [![Travis](https://img.shields.io/travis/oznu/docker-unms.svg?label=arm%20build&style=for-the-badge)](https://travis-ci.org/oznu/docker-unms) [![GitHub release](https://img.shields.io/github/release/oznu/unms/all.svg?style=for-the-badge)](https://github.com/oznu/docker-unms/releases)
 
 # Docker UNMS
 
