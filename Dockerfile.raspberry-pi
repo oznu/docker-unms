@@ -1,5 +1,5 @@
 # Multi-stage build - See https://docs.docker.com/engine/userguide/eng-image/multistage-build
-FROM ubnt/unms:0.11.0-rc1 as unms
+FROM ubnt/unms:0.11.0 as unms
 
 FROM oznu/s6-node:8.9.1-armhf
 
