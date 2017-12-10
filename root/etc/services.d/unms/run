@@ -11,4 +11,4 @@ if [ $? -ne 0 ]; then
   createdb -U postgres -O postgres $POSTGRES_DB
 fi
 
-s6-setuidgid abc /start.sh
+s6-setuidgid abc /start.sh  2>&1  | tee -a /config/unms/logs/unms.log

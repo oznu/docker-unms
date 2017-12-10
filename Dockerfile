@@ -27,7 +27,8 @@ RUN devDeps="musl-dev gcc python python-dev py-pip libffi-dev openssl-dev" \
   && apk del ${devDeps} \
   && echo "abc ALL=(ALL) NOPASSWD: /usr/sbin/nginx -s *" >> /etc/sudoers
 
-ENV PGDATA=/config/postgres \
+ENV PATH=/app/node_modules/.bin:$PATH \
+  PGDATA=/config/postgres \
   POSTGRES_DB=unms \
   HOME=/var/lib/rabbitmq \
   PROD=true \
