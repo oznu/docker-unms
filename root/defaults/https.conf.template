@@ -1,9 +1,8 @@
 server {
   listen ##HTTPS_PORT##;
 
-  ##SSL_CERTIFICATE##
-  ##SSL_CERTIFICATE_KEY##
-  ##SSL_CERTIFICATE_CA##
+  ssl_certificate /config/unms/cert/live.crt;
+  ssl_certificate_key /config/unms/cert/live.key;
 
   ssl on;
   ssl_session_cache  builtin:1000  shared:SSL:10m;

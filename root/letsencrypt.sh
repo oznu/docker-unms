@@ -21,7 +21,7 @@ if echo "${domain}" | grep "[0-9]$" &>/dev/null \
    || echo "${domain}" | grep "^[^.]*$" &>/dev/null \
    || echo "${domain}" | grep ":" &>/dev/null
 then
-   echo "Cannot use Let's Encrypt for ${domain}"
+   echo "Let's Encrypt can only be used for fully qualified domain names."
 else
   echo "Generating certificate for ${domain} using Let's Encrypt"
   if certbot certonly \

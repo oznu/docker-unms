@@ -5,6 +5,9 @@ echo "Creating /www directory"
 mkdir /www
 chown -R abc:abc /www
 
+# determine local network address
+export LOCAL_NETWORK=$(ip route | tail -1 | cut -d' ' -f1) || true
+
 # create Nginx config files from templates
 echo "Creating Nginx config files"
 rm -f /etc/nginx/conf.d/*
@@ -26,6 +29,21 @@ if [ -z "${SSL_CERT}" ] && [ ! -f "/config/unms/cert/live.crt" ] && [ -d "/confi
   rm -rf /config/unms/cert/accounts
 fi
 
+# If a self signed certificate exists from UNMS versins without integrated nginx, reuse it. This is necessary,
+# because UNMS UI will report an update failure if the certificate changes after the update.
+# This requires determining the Common Name and renaming the certificate files.
+if [ -z "${SSL_CERT}" ] && [ -f "/config/unms/cert/self-signed.crt" ] && [ -f "/config/unms/cert/self-signed.key" ]; then
+  echo "Found old certificate files, extracting Common Name..."
+  commonName=$(openssl x509 -noout -subject -in /config/unms/cert/self-signed.crt 2>/dev/null | sed -n '/^subject/s/^.*CN=//p' || true)
+  if [ ! -z "${commonName}" ]; then
+    echo "Renaming old certificate files from 'self-signed' to '${commonName}'"
+    mv -f "/config/unms/cert/self-signed.crt" "/config/unms/cert/${commonName}.crt" || echo "Failed to rename self-signed.crt to ${commonName}.crt"
+    mv -f "/config/unms/cert/self-signed.key" "/config/unms/cert/${commonName}.key" || echo "Failed to rename self-signed.key to ${commonName}.key"
+  else
+    echo "Failed to extract Common Name from old certificate file, will not reuse"
+  fi
+fi
+
 # generate self-signed SSL certificate if none is provided or existing
 if [ -z "${SSL_CERT}" ]; then
   if [ -f /config/unms/cert/live.crt ] && [ -f /config/unms/cert/live.key ]; then
@@ -33,8 +51,18 @@ if [ -z "${SSL_CERT}" ]; then
   else
     echo "Generating self-signed certificate without domain names"
     SAN="DNS:localhost" openssl req -nodes -x509 -newkey "rsa:2048" -subj "/CN=localhost" -keyout "/config/unms/cert/live.key" -out "/config/unms/cert/live.crt" -days "36500" -batch -config "/defaults/openssl.cnf"
-    chown -R abc:abc /config/unms/cert/*
+    chown -R abc /config/unms/cert/*
   fi
 else
   echo "Will use custom SSL certificate"
+  cp -a "/config/usercert/${SSL_CERT_KEY}" /config/unms/cert/live.key
+  if [ -z "${SSL_CERT_CA}" ]; then
+    cp -a "/config/usercert/${SSL_CERT}" /config/unms/cert/live.crt
+  else
+    # Unlike previous nodejs implementation, nginx needs certificate and chain
+    # in one file.
+    echo "Joining '/config/usercert/${SSL_CERT}' and '/config/usercert/${SSL_CERT_CA}' into '/config/unms/cert/live.crt'"
+    cat "/config/usercert/${SSL_CERT}" "/config/usercert/${SSL_CERT_CA}" > /cert/live.crt
+  fi
+  chown -R abc /config/unms/cert/*
 fi
