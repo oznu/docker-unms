@@ -1,5 +1,5 @@
 # Multi-stage build - See https://docs.docker.com/engine/userguide/eng-image/multistage-build
-FROM ubnt/unms:0.11.1 as unms
+FROM ubnt/unms:0.11.3 unms
 
 FROM oznu/s6-node:8.9.4-armhf
 
@@ -36,7 +36,8 @@ ENV NODE_ENV=production \
   HTTPS_PORT=443 \
   PUBLIC_HTTPS_PORT=443 \
   PUBLIC_WS_PORT=443 \
-  UNMS_FLUENTD_PORT=80
+  UNMS_FLUENTD_PORT=80 \
+  QUIET_MODE=0
 
 EXPOSE 80 443
 

@@ -11,4 +11,12 @@ if [ $? -ne 0 ]; then
   createdb -U postgres -O postgres $POSTGRES_DB
 fi
 
-s6-setuidgid abc /start.sh  2>&1  | tee -a /config/unms/logs/unms.log
+if [ "$QUIET_MODE" = "1" ]; then
+  echo "Starting UNMS in quiet mode..."
+  s6-setuidgid abc /start.sh >> /config/unms/logs/unms.log 2>&1
+
+  printf "\n\nUNMS exited, last 100 lines of log:\n\n"
+  tail -n 100 /config/unms/logs/unms.log
+else
+  s6-setuidgid abc /start.sh  2>&1  | tee -a /config/unms/logs/unms.log
+fi
