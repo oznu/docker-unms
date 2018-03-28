@@ -1,4 +1,6 @@
 #!/usr/bin/with-contenv sh
 
+export HOME=/var/lib/rabbitmq
+
 echo "Starting rabbitmq-server..."
 exec rabbitmq-server

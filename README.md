@@ -1,4 +1,4 @@
-[![Docker Build Status](https://img.shields.io/docker/build/oznu/unms.svg?label=x64%20build&style=for-the-badge)](https://hub.docker.com/r/oznu/unms/) [![Travis](https://img.shields.io/travis/oznu/docker-unms.svg?label=arm%20build&style=for-the-badge)](https://travis-ci.org/oznu/docker-unms) [![GitHub release](https://img.shields.io/github/release/oznu/unms/all.svg?style=for-the-badge)](https://github.com/oznu/docker-unms/releases)
+[![Docker Build Status](https://img.shields.io/docker/build/oznu/unms.svg?label=x64%20build)](https://hub.docker.com/r/oznu/unms/) [![Travis](https://img.shields.io/travis/oznu/docker-unms.svg?label=arm%20build)](https://travis-ci.org/oznu/docker-unms) [![GitHub release](https://img.shields.io/github/release/oznu/unms/all.svg)](https://github.com/oznu/docker-unms/releases)
 
 # Docker UNMS
 
@@ -12,7 +12,6 @@ This image will run on most platforms that support Docker including [Docker for 
 docker run \
   -p 80:80 \
   -p 443:443 \
-  -e PUID=<UID> -e PGID=<GID> \
   -e TZ=<timezone> \
   -v </path/to/config>:/config \
   oznu/unms:latest
@@ -34,25 +33,20 @@ The parameters are split into two halves, separated by a colon, the left hand si
 * `-p 80:80` - Expose the HTTP web server port on the docker host
 * `-p 443:443` - Expose the HTTPS and WSS web server port on the docker host
 * `-e TZ` - for [timezone information](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) e.g. `-e TZ=Europe/London`
-* `-e PGID` - for GroupID - see below for explanation
-* `-e PUID` - for UserID - see below for explanation
 
 *Optional Settings:*
 
 * `-e DEMO=false` - Enable UNMS demo mode
 * `-e PUBLIC_HTTPS_PORT=443` - This should match the HTTPS port your are exposing to on the docker host
 * `-e PUBLIC_WS_PORT=443` - This should match the HTTPS port your are exposing to on the docker host
+* `-e SECURE_LINK_SECRET=` - Random key for secure link module. Set this to something random.
 
-### User / Group Identifiers
+## Limitations
 
-Sometimes when using data volumes (`-v` flags) permissions issues can arise between the host OS and the container. We avoid this issue by allowing you to specify the user `PUID` and group `PGID`. Ensure the data volume directory on the host is owned by the same user you specify and it will "just work".
+The Docker image, oznu/unms, is not maintained by or affiliated with Ubiquiti Networks. You should not expect any support from Ubiquiti when running UNMS using this image.
 
-In this instance `PUID=1001` and `PGID=1001`. To find yours use `id user` as below:
-
-```
-  $ id <dockeruser>
-    uid=1001(dockeruser) gid=1001(dockergroup) groups=1001(dockergroup)
-```
+* In-app upgrades will not work. You can upgrade UNMS by downloading the latest version of this image.
+* Device firmware upgrades initiated from UNMS may not work ([#7](https://github.com/oznu/docker-unms/issues/7)).
 
 ## Docker Compose
 
@@ -60,15 +54,13 @@ In this instance `PUID=1001` and `PGID=1001`. To find yours use `id user` as bel
 version: '2'
 services:
   homebridge:
-    image: oznu/unms:latest
+    image: oznu/unms:latest  # use "armhf" instead of "latest" for arm devices
     restart: always
     ports:
       - 80:80
       - 443:443
     environment:
       - TZ=Australia/Sydney
-      - PGID=1000
-      - PUID=1000
     volumes:
       - ./volumes/unms:/config
 ```

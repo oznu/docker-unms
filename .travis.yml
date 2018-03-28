@@ -1,3 +1,5 @@
+language: bash
+
 services:
   - docker
 
@@ -9,3 +11,4 @@ before_script:
 
 script:
   - ~/docker-arm-ci/run.sh
+  

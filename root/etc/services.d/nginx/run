@@ -1,4 +1,20 @@
 #!/usr/bin/with-contenv sh
 
+export HTTP_PORT=80
+export HTTPS_PORT=443
+export WS_PORT=443
+export UNMS_HTTP_PORT=8081
+export UNMS_WS_PORT=8082
+export UNMS_WS_SHELL_PORT=8083
+export UNMS_WS_API_PORT=8084
+
 echo "Starting nginx..."
-s6-setuidgid root nginx -g 'daemon off;'
+
+# Run entrypoint
+cd /
+/entrypoint.sh
+
+# Fix permissions
+chown -R unms:unms /cert /config/cert
+
+s6-setuidgid root  nginx -g "daemon off;"

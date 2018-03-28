@@ -1,15 +1,26 @@
 #!/usr/bin/with-contenv sh
 
-# Logs
-[ -e /config/logs ] || mkdir -p /config/logs
-chown -R nobody:nobody /config/logs
-
 # Redis
 [ -e /config/redis ] || mkdir -p /config/redis
 chown -R abc:abc /config/redis
 
 # UNMS
-[ -e /config/unms ] || mkdir /config/unms
-[ -e /app/data ] && rm -rf /app/data
-ln -s /config/unms /app/data
-chown -R abc:abc /config/unms
+[ -e /config/unms ] || mv /home/app/unms/data /config/unms
+[ -d /home/app/unms/data ] && rm -rf /home/app/unms/data
+ln -s /config/unms /home/app/unms/data
+
+# Certs
+[ -e /config/cert ] || mkdir -p /config/cert
+ln -s /config/cert /cert
+
+# UNMS Logs
+[ -e /config/unms/logs ] || mkdir -p /config/unms/logs
+chown -R nobody:nobody /config/unms/logs
+
+# Service Logs
+[ -e /config/logs ] || mkdir -p /config/logs
+chown -R nobody:nobody /config/logs
+
+# Fix hosts file
+echo "127.0.0.1 unms" >> /etc/hosts
+

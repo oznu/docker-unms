@@ -1,22 +1,42 @@
 #!/usr/bin/with-contenv sh
 
+export HOME=/home/app
+export HTTP_PORT=8081
+export WS_PORT=8082
+export WS_SHELL_PORT=8083
+export UNMS_RABBITMQ_HOST=localhost
+export UNMS_RABBITMQ_PORT=5672
+export UNMS_REDISDB_HOST=localhost
+export UNMS_REDISDB_PORT=6379
+export UNMS_PG_HOST=localhost
+export UNMS_PG_PORT=5432
+export UNMS_FLUENTD_HOST=localhost
+export UNMS_FLUENTD_PORT=8081
+export UNMS_NGINX_HOST=localhost
+export UNMS_NGINX_PORT=12345
+export NODE_ENV=production
+
+# wait for postgres to come up
 until pg_isready; do
   echo "Waiting for postgres to come up..."
   sleep 1
 done
 
-# Create database if it does not exist
+# Create postgres database if it does not exist
 psql -U postgres -lqt | cut -d \| -f 1 | grep -qw $POSTGRES_DB
 if [ $? -ne 0 ]; then
+  echo "Creating database..."
   createdb -U postgres -O postgres $POSTGRES_DB
 fi
 
 if [ "$QUIET_MODE" = "1" ]; then
   echo "Starting UNMS in quiet mode..."
-  s6-setuidgid abc /start.sh >> /config/unms/logs/unms.log 2>&1
+  cd /home/app/unms
+  s6-setuidgid root docker-entrypoint.sh npm start >> /config/unms/logs/unms.log 2>&1
 
   printf "\n\nUNMS exited, last 100 lines of log:\n\n"
   tail -n 100 /config/unms/logs/unms.log
 else
-  s6-setuidgid abc /start.sh  2>&1  | tee -a /config/unms/logs/unms.log
+  cd /home/app/unms
+  s6-setuidgid root docker-entrypoint.sh npm start 2>&1  | tee -a /config/unms/logs/unms.log
 fi
