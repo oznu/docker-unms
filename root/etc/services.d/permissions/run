@@ -1,0 +1,5 @@
+#!/bin/sh
+
+sleep 20
+chown -R unms:unms /home/app/unms/public
+sleep 40

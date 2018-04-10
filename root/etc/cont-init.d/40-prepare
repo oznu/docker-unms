@@ -9,6 +9,10 @@ chown -R abc:abc /config/redis
 [ -d /home/app/unms/data ] && rm -rf /home/app/unms/data
 ln -s /config/unms /home/app/unms/data
 
+# Nginx Firmware
+mkdir -p /home/app/unms/public/firmwares /www
+ln -s /home/app/unms/public/firmwares /www/firmwares
+
 # Certs
 [ -e /config/cert ] || mkdir -p /config/cert
 ln -s /config/cert /cert
@@ -23,4 +27,3 @@ chown -R nobody:nobody /config/logs
 
 # Fix hosts file
 echo "127.0.0.1 unms" >> /etc/hosts
-

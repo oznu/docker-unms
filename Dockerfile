@@ -99,7 +99,7 @@ RUN devDeps="wget openssl-dev pcre-dev zlib-dev build-base libffi-dev python-dev
     && echo "unms ALL=(ALL) NOPASSWD: /usr/sbin/nginx -s *" >> /etc/sudoers \
     && echo "unms ALL=(ALL) NOPASSWD:SETENV: /copy-user-certs.sh reload" >> /etc/sudoers
 
-ADD https://github.com/Ubiquiti-App/UNMS/archive/4a4cc87c476fec59fc8fed90ec1b0bf69dade8fd.tar.gz /tmp/unms.tar.gz
+ADD https://github.com/Ubiquiti-App/UNMS/archive/7a583ca25df0c661c706334cdcd085be0e942517.tar.gz /tmp/unms.tar.gz
 
 RUN cd /tmp \
     && tar -xzf unms.tar.gz \
