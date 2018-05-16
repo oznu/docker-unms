@@ -1,6 +1,6 @@
 # Multi-stage build - See https://docs.docker.com/engine/userguide/eng-image/multistage-build
-FROM ubnt/unms:0.12.0 as unms
-FROM oznu/s6-node:8.10.0-armhf
+FROM ubnt/unms:0.12.1 as unms
+FROM oznu/s6-node:8.11.1-armhf
 
 # base deps redis, rabbitmq
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories \
@@ -13,10 +13,8 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/reposit
   && chmod -R 777 /var/lib/rabbitmq /etc/rabbitmq \
   && ln -sf /var/lib/rabbitmq/.erlang.cookie /root/
 
-# postgres 9.6.8
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.6/main" >> /etc/apk/repositories \
-    && apk add --no-cache postgresql==9.6.8-r0 postgresql-client=9.6.8-r0 libpq=9.6.8-r0 \
-    && sed -i '/v3.6/d' /etc/apk/repositories
+# postgres 9.6.9
+RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.6/main postgresql==9.6.9-r0 postgresql-client=9.6.9-r0 libpq=9.6.9-r0
 
 # start ubnt/unms dockerfile #
 RUN mkdir -p /home/app/unms
@@ -99,7 +97,7 @@ RUN devDeps="wget openssl-dev pcre-dev zlib-dev build-base libffi-dev python-dev
     && echo "unms ALL=(ALL) NOPASSWD: /usr/sbin/nginx -s *" >> /etc/sudoers \
     && echo "unms ALL=(ALL) NOPASSWD:SETENV: /copy-user-certs.sh reload" >> /etc/sudoers
 
-ADD https://github.com/Ubiquiti-App/UNMS/archive/7a583ca25df0c661c706334cdcd085be0e942517.tar.gz /tmp/unms.tar.gz
+ADD https://github.com/Ubiquiti-App/UNMS/archive/2380c44cd0139fba96556bee7f3f0fc8381e720d.tar.gz /tmp/unms.tar.gz
 
 RUN cd /tmp \
     && tar -xzf unms.tar.gz \
