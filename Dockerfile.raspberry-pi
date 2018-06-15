@@ -1,6 +1,6 @@
 # Multi-stage build - See https://docs.docker.com/engine/userguide/eng-image/multistage-build
-FROM ubnt/unms:0.12.1 as unms
-FROM oznu/s6-node:8.11.1-armhf
+FROM ubnt/unms:0.12.2 as unms
+FROM oznu/s6-node:8.11.3-armhf
 
 # base deps redis, rabbitmq
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories \
@@ -34,7 +34,7 @@ RUN devDeps="vips-dev fftw-dev make python g++" \
     && mkdir -p -m 777 "$HOME/unms/data/unms-backups" \
     && mkdir -p -m 777 "$HOME/unms/data/import"
 
-RUN setcap cap_net_raw=pe /usr/bin/node
+RUN setcap cap_net_raw=pe $(which node)
 
 COPY --from=unms /usr/local/bin/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
@@ -46,6 +46,7 @@ ENV NGINX_UID=1000 \
     LUAJIT_VERSION=2.1.0-beta3
 
 RUN devDeps="wget openssl-dev pcre-dev zlib-dev build-base libffi-dev python-dev build-base" \
+    && apk del libressl-dev curl-dev libssh2-dev \
     && apk add --no-cache --update ${devDeps} sudo dumb-init openssl pcre libgcc gettext py-pip \
     && pip install certbot==0.21.0 \
     && mkdir -p /tmp/src && cd /tmp/src \
@@ -97,7 +98,7 @@ RUN devDeps="wget openssl-dev pcre-dev zlib-dev build-base libffi-dev python-dev
     && echo "unms ALL=(ALL) NOPASSWD: /usr/sbin/nginx -s *" >> /etc/sudoers \
     && echo "unms ALL=(ALL) NOPASSWD:SETENV: /copy-user-certs.sh reload" >> /etc/sudoers
 
-ADD https://github.com/Ubiquiti-App/UNMS/archive/2380c44cd0139fba96556bee7f3f0fc8381e720d.tar.gz /tmp/unms.tar.gz
+ADD https://github.com/Ubiquiti-App/UNMS/archive/v0.12.2.tar.gz /tmp/unms.tar.gz
 
 RUN cd /tmp \
     && tar -xzf unms.tar.gz \
