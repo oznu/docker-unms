@@ -1,6 +1,6 @@
 # Multi-stage build - See https://docs.docker.com/engine/userguide/eng-image/multistage-build
-FROM ubnt/unms:0.12.2 as unms
-FROM oznu/s6-node:8.11.3-armhf
+FROM ubnt/unms:0.13.0 as unms
+FROM oznu/s6-node:8.12.0-armhf
 
 # base deps redis, rabbitmq
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories \
@@ -13,8 +13,8 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/reposit
   && chmod -R 777 /var/lib/rabbitmq /etc/rabbitmq \
   && ln -sf /var/lib/rabbitmq/.erlang.cookie /root/
 
-# postgres 9.6.9
-RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.6/main postgresql==9.6.9-r0 postgresql-client=9.6.9-r0 libpq=9.6.9-r0
+# postgres 9.6.10 https://pkgs.alpinelinux.org/packages?name=postgresql&branch=v3.6
+RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.6/main postgresql==9.6.10-r0 postgresql-client=9.6.10-r0 postgresql-contrib=9.6.10-r0 libpq=9.6.10-r0 
 
 # start ubnt/unms dockerfile #
 RUN mkdir -p /home/app/unms
@@ -45,9 +45,9 @@ ENV NGINX_UID=1000 \
     NGINX_VERSION=nginx-1.12.2 \
     LUAJIT_VERSION=2.1.0-beta3
 
-RUN devDeps="wget openssl-dev pcre-dev zlib-dev build-base libffi-dev python-dev build-base" \
-    && apk del libressl-dev curl-dev libssh2-dev \
-    && apk add --no-cache --update ${devDeps} sudo dumb-init openssl pcre libgcc gettext py-pip \
+RUN set -x && devDeps="wget pcre-dev zlib-dev build-base libffi-dev python-dev build-base" \
+    # && apk del libressl-dev curl-dev libssh2-dev \
+    && apk add --no-cache --update ${devDeps} sudo dumb-init pcre libgcc gettext py-pip \
     && pip install certbot==0.21.0 \
     && mkdir -p /tmp/src && cd /tmp/src \
     && wget -q http://nginx.org/download/${NGINX_VERSION}.tar.gz -O nginx.tar.gz \
@@ -98,19 +98,22 @@ RUN devDeps="wget openssl-dev pcre-dev zlib-dev build-base libffi-dev python-dev
     && echo "unms ALL=(ALL) NOPASSWD: /usr/sbin/nginx -s *" >> /etc/sudoers \
     && echo "unms ALL=(ALL) NOPASSWD:SETENV: /copy-user-certs.sh reload" >> /etc/sudoers
 
-ADD https://github.com/Ubiquiti-App/UNMS/archive/v0.12.2.tar.gz /tmp/unms.tar.gz
+ADD https://github.com/Ubiquiti-App/UNMS/archive/v0.13.0.tar.gz /tmp/unms.tar.gz
 
 RUN cd /tmp \
     && tar -xzf unms.tar.gz \
     && cd UNMS-*/src/nginx \
-    && cp *.sh *.conf.template openssl.cnf 502.html / \
-    && chmod +x /entrypoint.sh /cert.sh /letsencrypt.sh /fill-template.sh /copy-user-certs.sh
+    && cp entrypoint.sh refresh-certificate.sh fill-template.sh openssl.cnf *.conf.template / \
+    && mkdir -p /www/public \
+    && cp -R public /www/ \
+    && chmod +x /entrypoint.sh /fill-template.sh /refresh-certificate.sh
 # end ubnt/nginx docker file #
 
 ENV PATH=/home/app/unms/node_modules/.bin:$PATH \
   PGDATA=/config/postgres \
   POSTGRES_DB=unms \
   QUIET_MODE=0 \
+  WS_PORT=443 \
   PUBLIC_HTTPS_PORT=443 \
   PUBLIC_WS_PORT=443 \
   SECURE_LINK_SECRET=enigma \
