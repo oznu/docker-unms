@@ -1,5 +1,6 @@
 # Multi-stage build - See https://docs.docker.com/engine/userguide/eng-image/multistage-build
 FROM ubnt/unms:0.13.0 as unms
+FROM ubnt/unms-netflow:0.13.0 as unms-netflow
 FROM oznu/s6-node:8.12.0-amd64
 
 # base deps redis, rabbitmq
@@ -39,6 +40,19 @@ RUN setcap cap_net_raw=pe $(which node)
 COPY --from=unms /usr/local/bin/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 # end ubnt/unms dockerfile #
+
+# start unms-netflow dockerfile #
+RUN mkdir -p /home/app/netflow
+
+COPY --from=unms-netflow /home/app /home/app/netflow
+
+RUN devDeps="vips-dev fftw-dev make python g++" \
+  && apk add --no-cache ${devDeps} \
+  && cd /home/app/netflow \
+  && JOBS=$(nproc) npm install \
+  && apk del ${devDeps}
+
+# end unms-netflow dockerfile #
 
 # ubnt/nginx docker file #
 ENV NGINX_UID=1000 \
@@ -116,6 +130,7 @@ ENV PATH=/home/app/unms/node_modules/.bin:$PATH \
   WS_PORT=443 \
   PUBLIC_HTTPS_PORT=443 \
   PUBLIC_WS_PORT=443 \
+  UNMS_NETFLOW_PORT=2055 \
   SECURE_LINK_SECRET=enigma \
   SSL_CERT=""
 

@@ -1,0 +1,21 @@
+#!/usr/bin/with-contenv sh
+
+export HOME=/home/app
+export HTTP_PORT=8081
+export WS_PORT=8082
+export WS_SHELL_PORT=8083
+export UNMS_RABBITMQ_HOST=localhost
+export UNMS_RABBITMQ_PORT=5672
+export UNMS_REDISDB_HOST=localhost
+export UNMS_REDISDB_PORT=6379
+export UNMS_PG_HOST=localhost
+export UNMS_PG_PORT=5432
+export UNMS_FLUENTD_HOST=localhost
+export UNMS_FLUENTD_PORT=8081
+export UNMS_NGINX_HOST=localhost
+export UNMS_NGINX_PORT=12345
+export NODE_ENV=production
+
+echo "Starting unms-netflow..."
+
+s6-setuidgid root node /home/app/netflow/index.js
