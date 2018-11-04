@@ -53,7 +53,7 @@ The Docker image, oznu/unms, is not maintained by or affiliated with Ubiquiti Ne
 ```yml
 version: '2'
 services:
-  homebridge:
+  unms:
     image: oznu/unms:latest  # use "armhf" instead of "latest" for arm devices
     restart: always
     ports:
