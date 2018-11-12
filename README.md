@@ -12,6 +12,7 @@ This image will run on most platforms that support Docker including [Docker for 
 docker run \
   -p 80:80 \
   -p 443:443 \
+  -p 2055:2055/udp \
   -e TZ=<timezone> \
   -v </path/to/config>:/config \
   oznu/unms:latest
@@ -22,7 +23,7 @@ docker run \
 This image will also allow you to run [UNMS](https://unms.com/) on a Raspberry Pi or other Docker-enabled ARMv6/7/8 devices by using the `armhf` tag.
 
 ```
-docker run -d --name unms -p 80:80 -p 443:443 -v </path/to/config>:/config oznu/unms:armhf
+docker run -d --name unms -p 80:80 -p 443:443 -p 2055:2055/udp -v </path/to/config>:/config oznu/unms:armhf
 ```
 
 ## Parameters
@@ -32,6 +33,7 @@ The parameters are split into two halves, separated by a colon, the left hand si
 * `-v </path/to/config>:/config` - The persistent data location, the database, certs and logs will be stored here
 * `-p 80:80` - Expose the HTTP web server port on the docker host
 * `-p 443:443` - Expose the HTTPS and WSS web server port on the docker host
+* `-p 2055:2055/udp` - Expose the Netflow port on the docker host
 * `-e TZ` - for [timezone information](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) e.g. `-e TZ=Europe/London`
 
 *Optional Settings:*
@@ -59,6 +61,7 @@ services:
     ports:
       - 80:80
       - 443:443
+      - 2055:2055/udp
     environment:
       - TZ=Australia/Sydney
     volumes:

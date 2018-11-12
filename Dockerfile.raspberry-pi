@@ -1,11 +1,10 @@
 # Multi-stage build - See https://docs.docker.com/engine/userguide/eng-image/multistage-build
 FROM ubnt/unms:0.13.0 as unms
 FROM ubnt/unms-netflow:0.13.0 as unms-netflow
-FROM oznu/s6-node:8.12.0-armhf
+FROM oznu/s6-node:10.13.0-r2-armhf
 
 # base deps redis, rabbitmq
-RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories \
-  && apk add --no-cache vips redis rabbitmq-server \
+RUN apk add --no-cache redis rabbitmq-server --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing \
   && apk del ${devDeps} \
   && deluser rabbitmq \
   && addgroup -S rabbitmq && adduser -S -h /var/lib/rabbitmq -G rabbitmq rabbitmq \
@@ -25,10 +24,11 @@ WORKDIR /home/app/unms
 # Copy UNMS app from offical image since the source code is not published at this time
 COPY --from=unms /home/app/unms /home/app/unms
 
-RUN devDeps="vips-dev fftw-dev make python g++" \
-    && apk add --no-cache ${devDeps} su-exec gzip bash vim dumb-init openssl vips libcap \
+RUN devDeps="g++ make python" \
+    && apk add --no-cache ${devDeps} su-exec gzip bash vim dumb-init openssl libcap \
     && rm -rf node_modules \
-    && JOBS=$(nproc) npm install \
+    && JOBS=$(nproc) npm install sharp@latest \
+    && JOBS=$(nproc) npm install --production \
     && apk del ${devDeps} \
     && mkdir -p -m 777 "$HOME/unms/public/site-images" \
     && mkdir -p -m 777 "$HOME/unms/data/config-backups" \
@@ -46,10 +46,10 @@ RUN mkdir -p /home/app/netflow
 
 COPY --from=unms-netflow /home/app /home/app/netflow
 
-RUN devDeps="vips-dev fftw-dev make python g++" \
+RUN devDeps="make python g++" \
   && apk add --no-cache ${devDeps} \
   && cd /home/app/netflow \
-  && JOBS=$(nproc) npm install \
+  && JOBS=$(nproc) npm install --production \
   && apk del ${devDeps}
 
 # end unms-netflow dockerfile #
@@ -61,8 +61,7 @@ ENV NGINX_UID=1000 \
 
 RUN set -x && devDeps="wget pcre-dev zlib-dev build-base libffi-dev python-dev build-base" \
     # && apk del libressl-dev curl-dev libssh2-dev \
-    && apk add --no-cache --update ${devDeps} sudo dumb-init pcre libgcc gettext py-pip \
-    && pip install certbot==0.21.0 \
+    && apk add --no-cache --update ${devDeps} sudo dumb-init pcre libgcc gettext py-pip certbot \
     && mkdir -p /tmp/src && cd /tmp/src \
     && wget -q http://nginx.org/download/${NGINX_VERSION}.tar.gz -O nginx.tar.gz \
     && wget -q https://github.com/openresty/lua-nginx-module/archive/v0.10.11.tar.gz -O lua-nginx-module.tar.gz \
@@ -134,7 +133,7 @@ ENV PATH=/home/app/unms/node_modules/.bin:$PATH \
   SECURE_LINK_SECRET=enigma \
   SSL_CERT=""
 
-EXPOSE 80 443
+EXPOSE 80 443 2055/udp
 
 VOLUME ["/config"]
 
