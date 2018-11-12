@@ -24,6 +24,13 @@ WORKDIR /home/app/unms
 # Copy UNMS app from offical image since the source code is not published at this time
 COPY --from=unms /home/app/unms /home/app/unms
 
+## RPI ONLY ##
+RUN apk add --update --no-cache gcc g++ make libc6-compat
+RUN apk add vips-dev fftw-dev build-base --no-cache \
+  --repository https://dl-3.alpinelinux.org/alpine/edge/testing/ \
+  --repository https://dl-3.alpinelinux.org/alpine/edge/main
+## END RPI ONLY ##
+
 RUN devDeps="g++ make python" \
     && apk add --no-cache ${devDeps} su-exec gzip bash vim dumb-init openssl libcap \
     && rm -rf node_modules \
