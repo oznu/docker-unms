@@ -1,20 +1,21 @@
 # Multi-stage build - See https://docs.docker.com/engine/userguide/eng-image/multistage-build
 FROM ubnt/unms:0.13.0 as unms
 FROM ubnt/unms-netflow:0.13.0 as unms-netflow
-FROM oznu/s6-node:10.13.0-r2-amd64
+FROM oznu/s6-node:10.13.0-r2-debian-amd64
 
-# base deps redis, rabbitmq
-RUN apk add --no-cache redis rabbitmq-server --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing \
-  && apk del ${devDeps} \
-  && deluser rabbitmq \
-  && addgroup -S rabbitmq && adduser -S -h /var/lib/rabbitmq -G rabbitmq rabbitmq \
-  && mkdir -p /var/lib/rabbitmq /etc/rabbitmq \
-  && chown -R rabbitmq:rabbitmq /var/lib/rabbitmq /etc/rabbitmq \
-  && chmod -R 777 /var/lib/rabbitmq /etc/rabbitmq \
-  && ln -sf /var/lib/rabbitmq/.erlang.cookie /root/
+ENV DEBIAN_FRONTEND=noninteractive
 
-# postgres 9.6.10 https://pkgs.alpinelinux.org/packages?name=postgresql&branch=v3.6
-RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.6/main postgresql==9.6.10-r0 postgresql-client=9.6.10-r0 postgresql-contrib=9.6.10-r0 libpq=9.6.10-r0 
+# base deps redis, rabbitmq, postgres 9.6
+RUN set -x \
+  && echo "deb http://ftp.debian.org/debian stretch-backports main" >> /etc/apt/sources.list \
+  && apt-get update \
+  && mkdir -p /usr/share/man/man1 /usr/share/man/man7 \
+  && mkdir -p /usr/share/man/man7 \
+  && apt-get install -y build-essential rabbitmq-server redis-server \
+    postgresql-9.6 postgresql-contrib-9.6 postgresql-client-9.6 libpq-dev \
+    gzip bash vim openssl libcap-dev dumb-init sudo gettext zlibc zlib1g zlib1g-dev \
+    iproute2 netcat wget libpcre3 libpcre3-dev libssl-dev \
+  && apt-get install -y certbot -t stretch-backports
 
 # start ubnt/unms dockerfile #
 RUN mkdir -p /home/app/unms
@@ -24,18 +25,13 @@ WORKDIR /home/app/unms
 # Copy UNMS app from offical image since the source code is not published at this time
 COPY --from=unms /home/app/unms /home/app/unms
 
-RUN devDeps="g++ make python" \
-    && apk add --no-cache ${devDeps} su-exec gzip bash vim dumb-init openssl libcap \
-    && rm -rf node_modules \
+RUN rm -rf node_modules \
     && JOBS=$(nproc) npm install sharp@latest \
     && JOBS=$(nproc) npm install --production \
-    && apk del ${devDeps} \
     && mkdir -p -m 777 "$HOME/unms/public/site-images" \
     && mkdir -p -m 777 "$HOME/unms/data/config-backups" \
     && mkdir -p -m 777 "$HOME/unms/data/unms-backups" \
     && mkdir -p -m 777 "$HOME/unms/data/import"
-
-RUN setcap cap_net_raw=pe $(which node)
 
 COPY --from=unms /usr/local/bin/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
@@ -46,25 +42,21 @@ RUN mkdir -p /home/app/netflow
 
 COPY --from=unms-netflow /home/app /home/app/netflow
 
-RUN devDeps="make python g++" \
-  && apk add --no-cache ${devDeps} \
-  && cd /home/app/netflow \
-  && JOBS=$(nproc) npm install --production \
-  && apk del ${devDeps}
+RUN cd /home/app/netflow \
+  && JOBS=$(nproc) npm install --production
 
 # end unms-netflow dockerfile #
 
 # ubnt/nginx docker file #
 ENV NGINX_UID=1000 \
     NGINX_VERSION=nginx-1.12.2 \
-    LUAJIT_VERSION=2.1.0-beta3
+    LUAJIT_VERSION=2.1.0-beta3 \
+    LUA_NGINX_VERSION=0.10.13
 
-RUN set -x && devDeps="wget pcre-dev zlib-dev build-base libffi-dev python-dev build-base" \
-    # && apk del libressl-dev curl-dev libssh2-dev \
-    && apk add --no-cache --update ${devDeps} sudo dumb-init pcre libgcc gettext py-pip certbot \
+RUN set -x \
     && mkdir -p /tmp/src && cd /tmp/src \
     && wget -q http://nginx.org/download/${NGINX_VERSION}.tar.gz -O nginx.tar.gz \
-    && wget -q https://github.com/openresty/lua-nginx-module/archive/v0.10.11.tar.gz -O lua-nginx-module.tar.gz \
+    && wget -q https://github.com/openresty/lua-nginx-module/archive/v${LUA_NGINX_VERSION}.tar.gz -O lua-nginx-module.tar.gz \
     && wget -q https://github.com/simpl/ngx_devel_kit/archive/v0.3.0.tar.gz -O ndk.tar.gz \
     && wget -q http://luajit.org/download/LuaJIT-${LUAJIT_VERSION}.tar.gz -O luajit.tar.gz \
     && tar -zxvf lua-nginx-module.tar.gz \
@@ -78,7 +70,7 @@ RUN set -x && devDeps="wget pcre-dev zlib-dev build-base libffi-dev python-dev b
         --with-ld-opt='-Wl,-Bsymbolic-functions -fPIE -pie -Wl,-z,relro -Wl,-z,now -fPIC' \
         --with-pcre-jit \
         --with-threads \
-        --add-module=/tmp/src/lua-nginx-module-0.10.11 \
+        --add-module=/tmp/src/lua-nginx-module-${LUA_NGINX_VERSION} \
         --add-module=/tmp/src/ngx_devel_kit-0.3.0 \
         --with-http_ssl_module \
         --with-http_realip_module \
@@ -104,7 +96,6 @@ RUN set -x && devDeps="wget pcre-dev zlib-dev build-base libffi-dev python-dev b
         --http-proxy-temp-path=/tmp/proxy \
     && make -j $(nproc) \
     && make install \
-    && apk del ${devDeps} \
     && rm /usr/bin/luajit-${LUAJIT_VERSION} \
     && rm -rf /tmp/src \
     && rm -rf /var/cache/apk/* \
@@ -120,9 +111,13 @@ RUN cd /tmp \
     && mkdir -p /www/public \
     && cp -R public /www/ \
     && chmod +x /entrypoint.sh /fill-template.sh /refresh-certificate.sh
+
+# make compatible with debian
+RUN sed -i "s#/bin/sh#/bin/bash#g" /entrypoint.sh \
+  && sed -i "s#adduser -D#adduser --disabled-password --gecos \"\"#g" /entrypoint.sh
 # end ubnt/nginx docker file #
 
-ENV PATH=/home/app/unms/node_modules/.bin:$PATH \
+ENV PATH=/home/app/unms/node_modules/.bin:$PATH:/usr/lib/postgresql/9.6/bin \
   PGDATA=/config/postgres \
   POSTGRES_DB=unms \
   QUIET_MODE=0 \

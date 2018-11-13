@@ -25,5 +25,8 @@ chown -R nobody:nobody /config/unms/logs
 [ -e /config/logs ] || mkdir -p /config/logs
 chown -R nobody:nobody /config/logs
 
+# Clean cron
+[ -f /var/run/crond.pid ] rm -rf /var/run/crond.pid
+
 # Fix hosts file
 echo "127.0.0.1 unms" >> /etc/hosts
