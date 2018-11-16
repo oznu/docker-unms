@@ -18,4 +18,10 @@ export NODE_ENV=production
 
 echo "Starting unms-netflow..."
 
-s6-setuidgid root node /home/app/netflow/index.js
+if [ "$QUIET_MODE" = "1" ]; then
+  echo "Starting Netflow in quiet mode..."
+  s6-setuidgid root node /home/app/netflow/index.js >> /config/unms/logs/unms.log 2>&1
+
+else
+  s6-setuidgid root node /home/app/netflow/index.js 2>&1 | tee -a /config/unms/logs/unms.log
+fi
