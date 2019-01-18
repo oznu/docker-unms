@@ -1,7 +1,7 @@
 #!/usr/bin/with-contenv sh
 
-mkdir -p /config/postgres /run/postgresql
-chown -R postgres:postgres /config/postgres /run/postgresql
+mkdir -p /config/postgres /run/postgresql /var/run/postgresql
+chown -R postgres:postgres /config/postgres /run/postgresql /var/run/postgresql
 chmod 0700 /config/postgres
 
 if [ -e /config/postgres/postgresql.conf ]; then

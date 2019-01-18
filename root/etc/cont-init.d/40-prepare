@@ -19,14 +19,14 @@ ln -s /config/cert /cert
 
 # UNMS Logs
 [ -e /config/unms/logs ] || mkdir -p /config/unms/logs
-chown -R nobody:nobody /config/unms/logs
+chown -R nobody:nogroup /config/unms/logs
 
 # Service Logs
 [ -e /config/logs ] || mkdir -p /config/logs
-chown -R nobody:nobody /config/logs
+chown -R nobody:nogroup /config/logs
 
 # Clean cron
-[ -f /var/run/crond.pid ] rm -rf /var/run/crond.pid
+[ -f /var/run/crond.pid ] && rm -rf /var/run/crond.pid
 
 # Fix hosts file
 echo "127.0.0.1 unms" >> /etc/hosts
